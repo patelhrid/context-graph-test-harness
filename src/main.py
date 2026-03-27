@@ -9,7 +9,7 @@ from src.tasks import tasks_bp
 from src.db import init_db
 
 app = Flask(__name__)
-app.config["PORT"] = 3000
+app.config["PORT"] = 8080
 app.config["DATABASE_URL"] = "postgresql://localhost:5432/taskly"
 
 app.register_blueprint(auth_bp, url_prefix="/auth")
