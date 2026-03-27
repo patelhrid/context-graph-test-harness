@@ -1,0 +1,145 @@
+[
+  {
+    "event_id": "E01",
+    "type": "initial_ingestion",
+    "timestamp": "2025-11-15T09:00:00Z",
+    "description": "Initial graph population from the repo. Creates one node per source file and doc.",
+    "nodes_created": [
+      { "node_id": "N-main",   "type": "CodeFile",    "path": "src/main.py",           "label": "main.py" },
+      { "node_id": "N-auth",   "type": "CodeFile",    "path": "src/auth.py",           "label": "auth.py" },
+      { "node_id": "N-tasks",  "type": "CodeFile",    "path": "src/tasks.py",          "label": "tasks.py" },
+      { "node_id": "N-models", "type": "CodeFile",    "path": "src/models.py",         "label": "models.py" },
+      { "node_id": "N-db",     "type": "CodeFile",    "path": "src/db.py",             "label": "db.py" },
+      { "node_id": "N-readme", "type": "MarkdownDoc", "path": "README.md",             "label": "README" },
+      { "node_id": "N-arch",   "type": "MarkdownDoc", "path": "docs/ARCHITECTURE.md",  "label": "ARCHITECTURE.md" }
+    ],
+    "facts_asserted": [
+      { "fact_id": "F01", "subject": "N-readme", "predicate": "states",  "object": "Database is PostgreSQL" },
+      { "fact_id": "F02", "subject": "N-readme", "predicate": "states",  "object": "Server runs on port 3000" },
+      { "fact_id": "F03", "subject": "N-readme", "predicate": "states",  "object": "Auth uses JWT tokens" },
+      { "fact_id": "F04", "subject": "N-readme", "predicate": "states",  "object": "Frontend framework is React" },
+      { "fact_id": "F05", "subject": "N-readme", "predicate": "states",  "object": "Deployment target is AWS EC2" },
+      { "fact_id": "F06", "subject": "N-arch",   "predicate": "states",  "object": "Auth uses JWT tokens (ADR-002)" },
+      { "fact_id": "F07", "subject": "N-arch",   "predicate": "states",  "object": "Frontend framework is React (ADR-004)" }
+    ]
+  },
+
+  {
+    "event_id": "E02",
+    "type": "pull_request",
+    "timestamp": "2025-11-18T14:00:00Z",
+    "pr_id": "PR-12",
+    "pr_title": "Fix NullPointerException in entry point",
+    "pr_body": "I found a bug in main.py where init_db() is called before the blueprints are registered. Moving the call to after register_blueprint fixes the crash on startup.",
+    "files_changed": ["src/main.py"],
+    "test_case_ids": ["TC-01", "TC-02"]
+  },
+
+  {
+    "event_id": "E03",
+    "type": "pull_request",
+    "timestamp": "2025-11-20T10:30:00Z",
+    "pr_id": "PR-15",
+    "pr_title": "Refactor authentication module",
+    "pr_body": "Cleaned up the auth module. No logic changes — just extracted helper functions and added docstrings to make the token verification flow easier to follow.",
+    "files_changed": ["src/auth.py"],
+    "test_case_ids": ["TC-03"]
+  },
+
+  {
+    "event_id": "E04",
+    "type": "agent_transcript",
+    "timestamp": "2025-11-21T09:15:00Z",
+    "transcript_id": "T-001",
+    "agent": "claude-code",
+    "summary": "Developer asked the agent to add an `owner_id` column to the task table. Agent read the database models file, modified the Task class to add the column, and updated the migration script.",
+    "files_referenced": ["the database model definitions", "src/models.py"],
+    "test_case_ids": ["TC-04"]
+  },
+
+  {
+    "event_id": "E05",
+    "type": "pull_request",
+    "timestamp": "2025-11-25T16:00:00Z",
+    "pr_id": "PR-21",
+    "pr_title": "Switch server port to 8080",
+    "pr_body": "Port 3000 conflicts with the local React dev server. Changed the default port in the entry point to 8080. Updated README accordingly.",
+    "files_changed": ["src/main.py", "README.md"],
+    "new_facts": [
+      { "fact_id": "F08", "subject": "N-readme", "predicate": "states", "object": "Server runs on port 8080" }
+    ],
+    "contradicts": ["F02"],
+    "test_case_ids": ["TC-05"]
+  },
+
+  {
+    "event_id": "E06",
+    "type": "agent_transcript",
+    "timestamp": "2025-11-28T11:00:00Z",
+    "transcript_id": "T-002",
+    "agent": "claude-code",
+    "summary": "Developer asked the agent to migrate auth from JWT to session-based auth because of a security review finding. Agent modified auth.py to use Flask-Session instead of PyJWT, removed the generate_token and verify_token functions, and added a server-side session store backed by Redis.",
+    "files_referenced": ["src/auth.py", "the authentication file", "the login endpoint"],
+    "new_facts": [
+      { "fact_id": "F09", "subject": "N-auth", "predicate": "states", "object": "Auth uses session-based auth (Flask-Session + Redis)" }
+    ],
+    "contradicts": ["F03", "F06"],
+    "test_case_ids": ["TC-06", "TC-07"]
+  },
+
+  {
+    "event_id": "E07",
+    "type": "pull_request",
+    "timestamp": "2025-12-02T13:00:00Z",
+    "pr_id": "PR-29",
+    "pr_title": "Migrate from PostgreSQL to MongoDB",
+    "pr_body": "After the schema kept changing, we decided to drop the relational model. Replaced SQLAlchemy + PostgreSQL with PyMongo. The models file is now just plain Python dataclasses. The db module now connects to a MongoDB Atlas cluster instead.",
+    "files_changed": ["src/models.py", "src/db.py", "src/tasks.py"],
+    "new_facts": [
+      { "fact_id": "F10", "subject": "N-readme", "predicate": "states", "object": "Database is MongoDB" }
+    ],
+    "contradicts": ["F01"],
+    "test_case_ids": ["TC-08"]
+  },
+
+  {
+    "event_id": "E08",
+    "type": "agent_transcript",
+    "timestamp": "2025-12-05T15:30:00Z",
+    "transcript_id": "T-003",
+    "agent": "claude-code",
+    "summary": "Developer asked the agent to rewrite the frontend from React to Vue 3, citing that the team no longer has React expertise after a team change. Agent scaffold a new Vue 3 + Vite project in /client, removed the old React dependencies, and updated the README to reflect the stack change.",
+    "files_referenced": ["README.md", "the frontend directory", "the client-side code"],
+    "new_facts": [
+      { "fact_id": "F11", "subject": "N-readme", "predicate": "states", "object": "Frontend framework is Vue 3" }
+    ],
+    "contradicts": ["F04", "F07"],
+    "test_case_ids": ["TC-09"]
+  },
+
+  {
+    "event_id": "E09",
+    "type": "pull_request",
+    "timestamp": "2025-12-10T10:00:00Z",
+    "pr_id": "PR-34",
+    "pr_title": "Move deployment from AWS to GCP Cloud Run",
+    "pr_body": "AWS credits ran out. Migrating to GCP Cloud Run. Containerized the app with a Dockerfile and added a cloudbuild.yaml. The app now deploys automatically on every push to main via Cloud Build triggers.",
+    "files_changed": ["Dockerfile", "cloudbuild.yaml", "README.md"],
+    "new_facts": [
+      { "fact_id": "F12", "subject": "N-readme", "predicate": "states", "object": "Deployment target is GCP Cloud Run" }
+    ],
+    "contradicts": ["F05"],
+    "test_case_ids": ["TC-10"]
+  },
+
+  {
+    "event_id": "E10",
+    "type": "pull_request",
+    "timestamp": "2025-12-12T09:00:00Z",
+    "pr_id": "PR-37",
+    "pr_title": "Add input validation to task creation",
+    "pr_body": "Added pydantic validation to the POST /tasks/ endpoint. The task creation handler now rejects requests missing a title. Also fixed a small bug in the task listing logic.",
+    "files_changed": ["src/tasks.py"],
+    "test_case_ids": ["TC-ERR-01"]
+  }
+]
