@@ -4,6 +4,11 @@ CRUD operations on Task objects stored in PostgreSQL.
 """
 
 from flask import Blueprint, request, jsonify
+from pydantic import BaseModel, ValidationError
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str = ""
 from src.models import Task
 from src.db import get_db_session
 
