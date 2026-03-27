@@ -15,7 +15,7 @@ A simple task management REST API.
 python src/main.py
 ```
 
-The server starts on **port 3000** by default.
+The server starts on **port 8080** by default.
 
 ## API Overview
 
