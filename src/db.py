@@ -1,22 +1,16 @@
 """
-Database connection and session management.
-Connects to PostgreSQL via SQLAlchemy.
+Database connection for Taskly.
+Connects to MongoDB Atlas via PyMongo.
 """
+from pymongo import MongoClient
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from src.models import Base
+_client = None
+_db = None
 
-_engine = None
-_Session = None
+def init_db(uri: str = "mongodb+srv://localhost/taskly"):
+    global _client, _db
+    _client = MongoClient(uri)
+    _db = _client["taskly"]
 
-
-def init_db(database_url: str = "postgresql://localhost:5432/taskly"):
-    global _engine, _Session
-    _engine = create_engine(database_url)
-    Base.metadata.create_all(_engine)
-    _Session = sessionmaker(bind=_engine)
-
-
-def get_db_session():
-    return _Session()
+def get_db():
+    return _db
